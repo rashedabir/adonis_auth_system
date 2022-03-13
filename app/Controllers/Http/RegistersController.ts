@@ -1,6 +1,7 @@
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Hash from "@ioc:Adonis/Core/Hash";
 import User from "App/Models/User";
+const jwt = require("jsonwebtoken");
 
 export default class RegistersController {
   public async store({ request, response }) {
@@ -28,8 +29,17 @@ export default class RegistersController {
       password: await Hash.make(password),
     };
 
-    const newUser: User = await User.create(payload);
+    await User.create(payload);
+    const token = jwt.sign({ id: payload.email }, "123456789", {
+      expiresIn: "1d",
+    });
 
-    return response.ok(newUser);
+    response.cookie("bareer", token, {
+      expires: new Date(),
+      path: "/bareer",
+      secure: false,
+    });
+
+    return response.ok({ token: token });
   }
 }
